@@ -49,6 +49,8 @@ class Args {
     int verbose;
     std::string pretrainedVectors;
     bool saveOutput;
+    int seed;
+    int checkpointEvery;
 
     bool qout;
     bool retrain;

@@ -83,11 +83,28 @@ void FastText::getSubwordVector(Vector& vec, const std::string& subword)
   addInputVector(vec, h);
 }
 
-void FastText::saveVectors() {
-  std::ofstream ofs(args_->output + ".vec");
+
+void FastText::saveVectors(const int32_t epoch) {
+  std::ofstream ofs(args_->output +  "." + std::to_string(epoch) + ".txt");
   if (!ofs.is_open()) {
     throw std::invalid_argument(
-        args_->output + ".vec" + " cannot be opened for saving vectors!");
+        args_->output + ".txt" + " cannot be opened for saving vectors!");
+  }
+  ofs << dict_->nwords() << " " << args_->dim << std::endl;
+  Vector vec(args_->dim);
+  for (int32_t i = 0; i < dict_->nwords(); i++) {
+    std::string word = dict_->getWord(i);
+    getWordVector(vec, word);
+    ofs << word << " " << vec << std::endl;
+  }
+  ofs.close();
+}
+
+void FastText::saveVectors() {
+  std::ofstream ofs(args_->output + ".txt");
+  if (!ofs.is_open()) {
+    throw std::invalid_argument(
+        args_->output + ".txt" + " cannot be opened for saving vectors!");
   }
   ofs << dict_->nwords() << " " << args_->dim << std::endl;
   Vector vec(args_->dim);
@@ -585,6 +602,12 @@ void FastText::trainThread(int32_t threadId) {
   while (tokenCount_ < args_->epoch * ntokens) {
     real progress = real(tokenCount_) / (args_->epoch * ntokens);
     real lr = args_->lr * (1.0 - progress);
+    int64_t epoch_num = tokenCount_ / ntokens;
+    if ((threadId == 0) && epoch_num == (lastCheckpoint_ + args_->checkpointEvery)
+      && (args_->checkpointEvery > 0)) {
+      lastCheckpoint_ = epoch_num;
+      saveVectors(epoch_num);
+    }
     if (args_->model == model_name::sup) {
       localTokenCount += dict_->getLine(ifs, line, labels);
       supervised(model, lr, line, labels);
@@ -607,7 +630,7 @@ void FastText::trainThread(int32_t threadId) {
   ifs.close();
 }
 
-void FastText::loadVectors(std::string filename) {
+void FastText::loadVectors(std::string filename, int64_t seed) {
   std::ifstream in(filename);
   std::vector<std::string> words;
   std::shared_ptr<Matrix> mat; // temp. matrix for pretrained vectors
@@ -636,7 +659,7 @@ void FastText::loadVectors(std::string filename) {
   dict_->threshold(1, 0);
   dict_->init();
   input_ = std::make_shared<Matrix>(dict_->nwords()+args_->bucket, args_->dim);
-  input_->uniform(1.0 / args_->dim);
+  input_->uniform(1.0 / args_->dim, seed);
 
   for (size_t i = 0; i < n; i++) {
     int32_t idx = dict_->getId(words[i]);
@@ -663,10 +686,10 @@ void FastText::train(const Args args) {
   ifs.close();
 
   if (args_->pretrainedVectors.size() != 0) {
-    loadVectors(args_->pretrainedVectors);
+    loadVectors(args_->pretrainedVectors, args_->seed);
   } else {
     input_ = std::make_shared<Matrix>(dict_->nwords()+args_->bucket, args_->dim);
-    input_->uniform(1.0 / args_->dim);
+    input_->uniform(1.0 / args_->dim, args_->seed);
   }
 
   if (args_->model == model_name::sup) {
@@ -687,6 +710,7 @@ void FastText::train(const Args args) {
 void FastText::startThreads() {
   start_ = std::chrono::steady_clock::now();
   tokenCount_ = 0;
+  lastCheckpoint_ = 0;
   loss_ = -1;
   std::vector<std::thread> threads;
   for (int32_t i = 0; i < args_->thread; i++) {

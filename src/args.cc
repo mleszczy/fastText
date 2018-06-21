@@ -37,6 +37,8 @@ Args::Args() {
   verbose = 2;
   pretrainedVectors = "";
   saveOutput = false;
+  seed = 1;
+  checkpointEvery = 0;
 
   qout = false;
   retrain = false;
@@ -166,6 +168,10 @@ void Args::parseArgs(const std::vector<std::string>& args) {
         cutoff = std::stoi(args.at(ai + 1));
       } else if (args[ai] == "-dsub") {
         dsub = std::stoi(args.at(ai + 1));
+      } else if (args[ai] == "-seed") {
+        seed = std::stoi(args[ai+1]);
+      } else if (args[ai] == "-checkpointEvery") {
+        checkpointEvery = std::stoi(args[ai+1]);
       } else {
         std::cerr << "Unknown argument: " << args[ai] << std::endl;
         printHelp();
@@ -228,6 +234,8 @@ void Args::printTrainingHelp() {
     << "  -neg                number of negatives sampled [" << neg << "]\n"
     << "  -loss               loss function {ns, hs, softmax} [" << lossToString(loss) << "]\n"
     << "  -thread             number of threads [" << thread << "]\n"
+    << "  -seed               seed to initialize embedding [" << seed << "]\n"
+    << "  -checkpointEvery    interval to save vectors [" << checkpointEvery << "]\n"
     << "  -pretrainedVectors  pretrained word vectors for supervised learning ["<< pretrainedVectors <<"]\n"
     << "  -saveOutput         whether output params should be saved [" << boolToString(saveOutput) << "]\n";
 }

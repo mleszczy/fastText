@@ -45,6 +45,8 @@ class FastText {
 
   std::atomic<int64_t> tokenCount_;
   std::atomic<real> loss_;
+  std::atomic<int64_t> lastCheckpoint_;
+
 
   std::chrono::steady_clock::time_point start_;
   void signModel(std::ostream&);
@@ -76,6 +78,7 @@ class FastText {
   std::shared_ptr<const Matrix> getInputMatrix() const;
   std::shared_ptr<const Matrix> getOutputMatrix() const;
   void saveVectors();
+  void saveVectors(const int32_t);
   void saveModel(const std::string);
   void saveOutput();
   void saveModel();
@@ -112,7 +115,7 @@ class FastText {
   void trainThread(int32_t);
   void train(const Args);
 
-  void loadVectors(std::string);
+  void loadVectors(std::string, int64_t seed);
   int getDimension() const;
   bool isQuant() const;
 };

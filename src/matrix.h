@@ -61,7 +61,7 @@ class Matrix {
     return n_;
   }
   void zero();
-  void uniform(real);
+  void uniform(real, int64_t);
   real dotRow(const Vector&, int64_t) const;
   void addRow(const Vector&, int64_t, real);
 
