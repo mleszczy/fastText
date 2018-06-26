@@ -299,7 +299,7 @@ void train(const std::vector<std::string> args) {
   ofs.close();
   fasttext.train(a);
   fasttext.saveModel();
-  fasttext.saveVectors();
+  fasttext.saveVectors(a.epoch);
   if (a.saveOutput) {
     fasttext.saveOutput();
   }

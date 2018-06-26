@@ -85,10 +85,10 @@ void FastText::getSubwordVector(Vector& vec, const std::string& subword)
 
 
 void FastText::saveVectors(const int32_t epoch) {
-  std::ofstream ofs(args_->output +  "." + std::to_string(epoch) + ".txt");
+  std::ofstream ofs(args_->output +  "." + std::to_string(epoch) + ".vec");
   if (!ofs.is_open()) {
     throw std::invalid_argument(
-        args_->output + ".txt" + " cannot be opened for saving vectors!");
+        args_->output + ".vec" + " cannot be opened for saving vectors!");
   }
   ofs << dict_->nwords() << " " << args_->dim << std::endl;
   Vector vec(args_->dim);
@@ -101,10 +101,10 @@ void FastText::saveVectors(const int32_t epoch) {
 }
 
 void FastText::saveVectors() {
-  std::ofstream ofs(args_->output + ".txt");
+  std::ofstream ofs(args_->output + ".vec");
   if (!ofs.is_open()) {
     throw std::invalid_argument(
-        args_->output + ".txt" + " cannot be opened for saving vectors!");
+        args_->output + ".vec" + " cannot be opened for saving vectors!");
   }
   ofs << dict_->nwords() << " " << args_->dim << std::endl;
   Vector vec(args_->dim);
